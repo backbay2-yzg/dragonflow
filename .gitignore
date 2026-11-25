@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+data/
+.worktrees/
+*.db
+*.db-wal
+*.db-shm
+coverage/
+.DS_Store
+Thumbs.db
+apps/desktop/bin/
+apps/desktop/.task/
+apps/desktop/frontend/dist/
+apps/desktop/*.syso
+apps/desktop/.wails/
+apps/desktop/build/windows/nsis/MicrosoftEdgeWebview2Setup.exe

@@ -1,0 +1,520 @@
+# =============================================================================
+# DragonFlow 生产环境配置示例（完整注释版）
+# 复制为 config/dragonflow.yaml 后按需修改，并配合 .env 中的环境变量使用：
+#   DRAGONFLOW_CONFIG=config/dragonflow.yaml
+# 所有字段均严格对应 packages/shared/src/config.ts 中的 DragonFlowConfigSchema。
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. 项目基础配置
+# -----------------------------------------------------------------------------
+project:
+  # 控制台展示的项目名称
+  name: "DragonFlow"
+  # SQLite 数据库、日志、仓库镜像及 Worktree 根目录
+  dataDir: "./data"
+  # 运行模式：
+  #   - live: 连接真实 GitHub 仓库与本地 CLI Agent 执行全流程
+  #   - demo: 零密钥离线演示模式（参见 config/dragonflow.demo.yaml）
+  mode: "live"
+
+# -----------------------------------------------------------------------------
+# 2. GitHub 仓库接入、轮询/Webhook 与权限门禁
+# -----------------------------------------------------------------------------
+github:
+  # 读取 GitHub PAT / Fine-grained Token 的环境变量名（切勿明文写入 YAML）
+  # 建议权限：Issues(RW), Pull requests(RW), Contents(RW), Checks(R), Actions(R)
+  tokenEnv: "GITHUB_TOKEN"
+  # 读取 GitHub Webhook HMAC-SHA256 验签密钥的环境变量名（可选；仅使用轮询时可留空）
+  # Webhook 接收端点默认挂载于 POST /api/webhooks/github
+  webhookSecretEnv: "GITHUB_WEBHOOK_SECRET"
+  # GitHub 轮询间隔（秒），最小值为 5；即使无公网 IP 无法配置 Webhook，也可通过轮询稳定运行
+  pollIntervalSec: 30
+
+  # 纳管的开源仓库列表（支持同时管理多个仓库）
+  repositories:
+    - owner: "your-org"
+      repo: "your-oss-repo"
+      baseBranch: "main"
+      enabled: true
+      # 仓库级验证命令（未配置时回退使用 workflow.default*Command）
+      testCommand: "pnpm test"
+      buildCommand: "pnpm build"
+      lintCommand: "pnpm run --if-present lint"
+
+    # 示例：Python 仓库可单独覆写测试/构建/Lint 命令
+    # - owner: "your-org"
+    #   repo: "your-python-lib"
+    #   baseBranch: "main"
+    #   enabled: false
+    #   testCommand: "pytest -q"
+    #   lintCommand: "ruff check ."
+
+  # 触发自动研发的 Issue 标签（当非维护者提交 Issue 时，需由维护者打上此标签或评论 /auto）
+  triggerLabel: "auto-dev"
+  # 需要人工介入时自动挂载的标签
+  needsHumanLabel: "needs-human"
+  # 仓库所有者 / 维护者快速通道：
+  #   - true: maintainers 列表或 OWNER/MEMBER/COLLABORATOR 创建的 Issue 可直接启动研发（无需额外打标签）
+  #   - false: 所有 Issue 均需显式带有 triggerLabel 或 /auto 指令才启动
+  ownerFastTrack: true
+  # 拥有斜杠指令（/auto, /approve, /reject, /fix, /retry, /merge, /cancel）权限的 GitHub 用户名列表
+  maintainers:
+    - "your-github-username"
+
+  # 低风险变更自动合并策略（高风险功能仍强烈建议人工 /merge 或在 GitHub 上审批合并）
+  autoMergeLowRisk:
+    enabled: false
+    # 仅允许指定分诊类别的 PR 自动合并
+    allowedCategories:
+      - "docs"
+      - "chore"
+    # 允许自动合并的最大复杂度评分（1~5）
+    maxComplexity: 2
+    # 允许自动合并的最大变更文件数
+    maxFilesChanged: 5
+    # 合并方式：squash | merge | rebase
+    mergeMethod: "squash"
+
+# -----------------------------------------------------------------------------
+# 3. 结构化 LLM 决策通道（用于 Triage 分诊、Routing 辅助与 Review 解析）
+# -----------------------------------------------------------------------------
+llm:
+  # 运行模式：
+  #   - cli_fallback: 优先调用结构化 LLM API；若无 API Key 或请求失败，自动回退到 Headless CLI
+  #   - api:          仅使用结构化 LLM API
+  #   - cli_only:     纯零 API Key 模式，完全通过本地无头 CLI 完成结构化推理
+  mode: "cli_fallback"
+  # API 提供商协议：openai-compatible | anthropic | gemini
+  provider: "openai-compatible"
+  # API 基础地址（兼容 DeepSeek / OpenRouter / SiliconFlow / vLLM / Ollama / OneAPI 等）
+  baseUrl: "https://api.openai.com/v1"
+  # 读取 API Key 的环境变量名：
+  #   - openai-compatible -> OPENAI_API_KEY
+  #   - anthropic         -> ANTHROPIC_API_KEY
+  #   - gemini            -> GEMINI_API_KEY
+  apiKeyEnv: "OPENAI_API_KEY"
+  # 模型名称（如 gpt-4o-mini / deepseek-chat / claude-3-5-sonnet-latest / gemini-2.5-flash）
+  model: "gpt-4o-mini"
+  # 当 mode 为 cli_fallback 或 cli_only 时，用于执行结构化推理的本地 Agent ID
+  cliFallbackAgentId: "claude"
+  # 采样温度（0.0 ~ 2.0，结构化输出建议偏低）
+  temperature: 0.2
+  # 单次最大输出 Token
+  maxTokens: 4096
+
+# -----------------------------------------------------------------------------
+# 4. 编码 CLI Agent 池（内置 8 种 CLI 适配 + 第 9 种 YAML 自定义模板）
+# DragonFlow 会在启动及周期探测时自动检测本机 PATH 中实际可用的 CLI（含 Windows .exe/.ps1）
+# -----------------------------------------------------------------------------
+agents:
+  # [1/8] Claude Code CLI
+  - id: "claude"
+    displayName: "Claude Code"
+    type: "claude"
+    enabled: true
+    command: "claude"
+    args: [] # 内置已自动注入 -p --output-format --permission-mode；此处仅追加额外参数
+    strengths:
+      - "complex-architecture"
+      - "typescript"
+      - "multi-file-refactor"
+      - "code-review"
+    costTier: "high"
+    maxBudgetUsd: 5.0
+    timeoutSec: 1200
+    envAllowlist:
+      - "ANTHROPIC_API_KEY"
+      - "ANTHROPIC_BASE_URL"
+    promptMode: "stdin"
+    outputMode: "stream-json"
+
+  # [2/8] OpenAI Codex CLI
+  - id: "codex"
+    displayName: "OpenAI Codex CLI"
+    type: "codex"
+    enabled: true
+    command: "codex"
+    args: []
+    strengths:
+      - "bugfix"
+      - "unit-tests"
+      - "cross-review"
+      - "backend"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist:
+      - "OPENAI_API_KEY"
+      - "OPENAI_BASE_URL"
+    promptMode: "stdin"
+    outputMode: "json"
+
+  # [3/8] Google Gemini CLI
+  - id: "gemini"
+    displayName: "Gemini CLI"
+    type: "gemini"
+    enabled: true
+    command: "gemini"
+    args: []
+    strengths:
+      - "docs"
+      - "large-context"
+      - "quick-fix"
+      - "chore"
+    costTier: "low"
+    timeoutSec: 900
+    envAllowlist:
+      - "GEMINI_API_KEY"
+      - "GOOGLE_API_KEY"
+    promptMode: "stdin"
+    outputMode: "json"
+
+  # [4/8] Qoder CLI
+  - id: "qodercli"
+    displayName: "Qoder CLI"
+    type: "qodercli"
+    enabled: true
+    command: "qodercli"
+    args: []
+    strengths:
+      - "frontend"
+      - "full-stack"
+      - "fast-iteration"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+  # [5/8] OpenCode CLI
+  - id: "opencode"
+    displayName: "OpenCode"
+    type: "opencode"
+    enabled: true
+    command: "opencode"
+    args: []
+    strengths:
+      - "open-models"
+      - "refactoring"
+      - "multi-provider"
+    costTier: "low"
+    timeoutSec: 900
+    envAllowlist:
+      - "OPENAI_API_KEY"
+      - "ANTHROPIC_API_KEY"
+      - "OPENROUTER_API_KEY"
+    promptMode: "stdin"
+    outputMode: "json"
+
+  # [6/8] Aider CLI
+  - id: "aider"
+    displayName: "Aider"
+    type: "aider"
+    enabled: true
+    command: "aider"
+    args: []
+    strengths:
+      - "surgical-edits"
+      - "python"
+      - "git-diff"
+    costTier: "low"
+    timeoutSec: 900
+    envAllowlist:
+      - "OPENAI_API_KEY"
+      - "ANTHROPIC_API_KEY"
+      - "DEEPSEEK_API_KEY"
+    promptMode: "file"
+    outputMode: "text"
+
+  # [7/8] WorkBuddy CLI
+  - id: "workbuddy"
+    displayName: "WorkBuddy CLI"
+    type: "workbuddy"
+    enabled: true
+    command: "workbuddy"
+    args: []
+    strengths:
+      - "enterprise-workflow"
+      - "documentation"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+  # [8/8] CodeBuddy CLI
+  - id: "codebuddy"
+    displayName: "CodeBuddy CLI"
+    type: "codebuddy"
+    enabled: true
+    command: "codebuddy"
+    args: []
+    strengths:
+      - "code-generation"
+      - "test-generation"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+  # ---------------------------------------------------------------------------
+  # [9/8 扩展能力] 通过 type: "template" 零代码接入任何第三方/内部自研编码 CLI
+  # 取消注释并修改 command / argsTemplate / quotaErrorPatterns 即可生效
+  # ---------------------------------------------------------------------------
+  # - id: "my-custom-cli"
+  #   displayName: "My Custom Coding CLI"
+  #   type: "template"
+  #   enabled: true
+  #   command: "my-agent-cli"
+  #   args: []
+  #   model: "deepseek-coder"
+  #   strengths:
+  #     - "internal-sdk"
+  #     - "rust"
+  #   costTier: "low"
+  #   timeoutSec: 900
+  #   envAllowlist:
+  #     - "MY_CUSTOM_CLI_API_KEY"
+  #   promptMode: "file"       # 支持 stdin | arg | file
+  #   outputMode: "text"       # 支持 text | json | stream-json
+  #   template:
+  #     # 支持占位符：{prompt}（提示词文本）、{promptFile}（临时提示词文件路径）、
+  #     #             {workDir}（当前 Git Worktree 路径）、{model}（上方 model 字段）
+  #     argsTemplate:
+  #       - "exec"
+  #       - "--model"
+  #       - "{model}"
+  #       - "--cwd"
+  #       - "{workDir}"
+  #       - "--prompt-file"
+  #       - "{promptFile}"
+  #     # 当 stderr/stdout 匹配以下正则或关键字时，自动识别为 quota_exceeded 并触发 fallbackOrder 切换
+  #     quotaErrorPatterns:
+  #       - "quota exceeded"
+  #       - "insufficient_quota"
+  #       - "rate limit reached"
+  #     # 本机探测时检查 CLI 是否可用及获取版本号的参数
+  #     versionArgs:
+  #       - "--version"
+
+# -----------------------------------------------------------------------------
+# 5. 三层智能路由与故障切换（Fallback）策略
+# Layer 1: 显式标签或规则匹配（rules）
+# Layer 2: LLM 智能评估（结合复杂度、分诊类别、Agent 特长与成本等级）
+# Layer 3: 默认 Agent 与顺序故障兜底（fallbackOrder）
+# -----------------------------------------------------------------------------
+routing:
+  defaultAgent: "claude"
+  # 可选：指定默认交叉审查（Cross-Review）Agent；未配置时自动从可用 Agent 中挑选
+  defaultReviewerAgent: "codex"
+  # 是否强制要求 Cross-Review 使用与实现阶段不同的 Agent（异构双模型交叉把关）
+  crossReviewDifferentAgent: true
+  # 当主 Agent 额度耗尽 / 限流 / 超时 / 不可用时，按此顺序自动尝试备用 Agent
+  fallbackOrder:
+    - "claude"
+    - "qodercli"
+    - "codex"
+    - "gemini"
+    - "opencode"
+    - "aider"
+    - "workbuddy"
+    - "codebuddy"
+
+  # Layer 1 静态路由规则：数值越小优先级越高（priority ascending）
+  rules:
+    - name: "docs-and-chore-quick-fix"
+      priority: 10
+      match:
+        categories:
+          - "docs"
+          - "chore"
+        complexityMax: 2
+      agentId: "gemini"
+      fallbackAgents:
+        - "opencode"
+        - "claude"
+      tierOverride: "quick_fix"
+
+    - name: "security-or-critical-architecture"
+      priority: 20
+      match:
+        labels:
+          - "security"
+          - "architecture"
+        complexityMin: 3
+      agentId: "claude"
+      fallbackAgents:
+        - "codex"
+        - "qodercli"
+      tierOverride: "full_sdlc"
+
+    - name: "bugfix-hotfix-fast-track"
+      priority: 30
+      match:
+        categories:
+          - "bug"
+        titleRegex: "(fix|crash|panic|regression|typo)"
+        complexityMax: 2
+      agentId: "codex"
+      fallbackAgents:
+        - "claude"
+        - "qodercli"
+      tierOverride: "quick_fix"
+
+    - name: "frontend-ui-tasks"
+      priority: 40
+      match:
+        labels:
+          - "frontend"
+          - "ui"
+      agentId: "qodercli"
+      fallbackAgents:
+        - "claude"
+        - "gemini"
+
+# -----------------------------------------------------------------------------
+# 6. 研发工作流与重试预算控制
+# -----------------------------------------------------------------------------
+workflow:
+  # 最大并发执行的任务数
+  maxConcurrentTasks: 2
+  # 当未显式覆写 tierOverride 时，复杂度 <= 该值的任务走 quick_fix（跳过 Plan 审批直接实现）
+  quickFixMaxComplexity: 2
+  # full_sdlc 模式下生成 Spec & Plan 后，是否暂停在 AWAITING_PLAN_APPROVAL 等待维护者 /approve
+  requirePlanApprovalForFullSdlc: true
+  # 本地测试失败后的自动修复最大重试次数（超限转 NEEDS_HUMAN）
+  maxLocalFixRetries: 2
+  # 跨 Agent Cross-Review 未通过后的自动返修最大次数
+  maxCrossReviewRetries: 1
+  # GitHub Actions CI 失败后的自动拉取日志与修复最大次数
+  maxCiFixRetries: 3
+  # PR Review 收到修改意见后的自动修复最大次数
+  maxReviewFixRetries: 3
+  # 默认本地验证命令（当仓库级未配置时使用）
+  defaultTestCommand: "pnpm test"
+  defaultBuildCommand: "pnpm build"
+  defaultLintCommand: "pnpm run --if-present lint"
+
+# -----------------------------------------------------------------------------
+# 7. 自动发版策略（配合 templates/github-workflows/ 使用）
+# -----------------------------------------------------------------------------
+release:
+  # 发版模式：
+  #   - release_pr:       配合 release-please.yml，合并业务 PR 后追踪 Release PR，合并后完成 RELEASED
+  #   - immediate_per_pr: 配合 immediate-release.yml，PR 合并到 main 后立即自动计算 SemVer 并发版
+  mode: "release_pr"
+  # release-please 自动生成的 Release PR 标题前缀
+  releasePrTitlePrefix: "chore(main): release"
+  # release-please 自动生成的 Release PR 分支前缀
+  releaseBranchPrefix: "release-please--"
+  # 是否要求 PR 标题与提交遵循 Conventional Commits 规范
+  conventionalCommits: true
+
+# -----------------------------------------------------------------------------
+# 8. 工作区隔离策略（Git Worktree 默认 / Docker 沙箱预留）
+# -----------------------------------------------------------------------------
+workspace:
+  # 隔离执行器：worktree | docker
+  runner: "worktree"
+  # 每个任务独立分支与 Worktree 所在目录
+  worktreeRoot: "./data/worktrees"
+  # 目标仓库裸克隆 / 主镜像缓存目录
+  reposRoot: "./data/repos"
+  # 任务结束后是否自动清理对应的 Worktree 目录（false 便于排障查看产物）
+  cleanupOnFinish: false
+  # 当 runner 切换为 docker 时生效的容器沙箱配置（Windows 下需 WSL2 + Docker Desktop）
+  dockerImage: "node:22-bookworm"
+  dockerNetwork: "bridge"
+  # 可选：本地测试或内网镜像调试时覆写 git clone URL（例如指向本地 bare 仓库）
+  # localRepoUrlOverride: "file:///D:/repos/my-test-repo.git"
+
+# -----------------------------------------------------------------------------
+# 9. 多渠道 IM 通知配置（飞书、钉钉、企业微信、Slack、Telegram 等）
+# 支持事件：
+#   triage_completed | plan_awaiting_approval | pr_opened | ci_failed |
+#   review_requested | ready_to_merge | agent_fallback | needs_human |
+#   merged | released | failed
+# -----------------------------------------------------------------------------
+notifications:
+  channels:
+    # 飞书自定义机器人（支持签名校验 secretEnv）
+    - id: "feishu-main"
+      type: "feishu"
+      enabled: false
+      urlEnv: "FEISHU_WEBHOOK_URL"
+      secretEnv: "FEISHU_WEBHOOK_SECRET"
+      events:
+        - "plan_awaiting_approval"
+        - "ready_to_merge"
+        - "agent_fallback"
+        - "needs_human"
+        - "released"
+        - "failed"
+
+    # 钉钉群自定义机器人（支持加签 secretEnv）
+    - id: "dingtalk-main"
+      type: "dingtalk"
+      enabled: false
+      urlEnv: "DINGTALK_WEBHOOK_URL"
+      secretEnv: "DINGTALK_WEBHOOK_SECRET"
+      events:
+        - "plan_awaiting_approval"
+        - "ready_to_merge"
+        - "needs_human"
+        - "released"
+        - "failed"
+
+    # 企业微信群机器人
+    - id: "wecom-main"
+      type: "wecom"
+      enabled: false
+      urlEnv: "WECOM_WEBHOOK_URL"
+      events:
+        - "plan_awaiting_approval"
+        - "ready_to_merge"
+        - "needs_human"
+        - "released"
+        - "failed"
+
+    # Slack Incoming Webhook
+    - id: "slack-dev"
+      type: "slack"
+      enabled: false
+      urlEnv: "SLACK_WEBHOOK_URL"
+      events:
+        - "pr_opened"
+        - "ci_failed"
+        - "ready_to_merge"
+        - "needs_human"
+        - "released"
+
+    # Telegram Bot（urlEnv 填写 Bot Token 对应的环境变量名，配合 chatIdEnv 使用）
+    - id: "telegram-ops"
+      type: "telegram"
+      enabled: false
+      urlEnv: "TELEGRAM_BOT_TOKEN"
+      chatIdEnv: "TELEGRAM_CHAT_ID"
+      events:
+        - "plan_awaiting_approval"
+        - "ready_to_merge"
+        - "needs_human"
+        - "released"
+        - "failed"
+
+    # 可选：Discord / 通用 Webhook
+    # - id: "discord-oss"
+    #   type: "discord"
+    #   enabled: false
+    #   urlEnv: "DISCORD_WEBHOOK_URL"
+    #   events:
+    #     - "pr_opened"
+    #     - "released"
+
+# -----------------------------------------------------------------------------
+# 10. HTTP API 与 Web 控制台服务配置
+# -----------------------------------------------------------------------------
+server:
+  host: "127.0.0.1"
+  port: 4390
+  corsOrigin: "*"

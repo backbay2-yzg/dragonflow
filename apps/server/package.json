@@ -1,0 +1,21 @@
+{
+  "name": "@dragonflow/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "demo": "tsx src/index.ts --demo --config ../../config/dragonflow.demo.yaml",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dragonflow/core": "workspace:*",
+    "@dragonflow/shared": "workspace:*",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.7.0",
+    "zod": "^3.24.2"
+  }
+}

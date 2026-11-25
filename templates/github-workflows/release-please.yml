@@ -1,0 +1,138 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Create Release PR / GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      upload_url: ${{ steps.release.outputs.upload_url }}
+
+    steps:
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          # 说明：默认使用 GITHUB_TOKEN 即可创建 Release PR 与 Tag/Release。
+          # 注意：由 GITHUB_TOKEN 创建的 Release PR 默认不会自动触发 pull_request CI；
+          # 如需 Release PR 自动触发 ci.yml，请配置 PAT 或 GitHub App Token：${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # ---------------------------------------------------------------------------
+  # 可选扩展 Hook：仅当本次合并 Release PR 实际生成了新 Release 时触发以下发布任务
+  # ---------------------------------------------------------------------------
+
+  # [Hook 1] 发布到 npm（取消注释并配置 NPM_TOKEN Secret 后启用）
+  # publish-npm:
+  #   name: Publish to npm
+  #   needs: release-please
+  #   if: ${{ needs.release-please.outputs.release_created == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.release-please.outputs.tag_name }}
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22
+  #         registry-url: https://registry.npmjs.org
+  #         cache: pnpm
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm build
+  #     - run: pnpm publish --no-git-checks --access public
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # [Hook 2] 发布到 PyPI（支持 Trusted Publishing OIDC）
+  # publish-pypi:
+  #   name: Publish to PyPI
+  #   needs: release-please
+  #   if: ${{ needs.release-please.outputs.release_created == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.release-please.outputs.tag_name }}
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.12'
+  #     - run: pip install build
+  #     - run: python -m build
+  #     - uses: pypa/gh-action-pypi-publish@release/v1
+
+  # [Hook 3] 构建并推送 Docker 镜像（示例：GHCR，也可改为 Docker Hub）
+  # publish-docker:
+  #   name: Build & Push Docker Image
+  #   needs: release-please
+  #   if: ${{ needs.release-please.outputs.release_created == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.release-please.outputs.tag_name }}
+  #     - uses: docker/setup-buildx-action@v3
+  #     - uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     - id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ghcr.io/${{ github.repository }}
+  #         tags: |
+  #           type=semver,pattern={{version}},value=${{ needs.release-please.outputs.version }}
+  #           type=raw,value=latest
+  #     - uses: docker/build-push-action@v6
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+
+  # [Hook 4] 构建跨平台二进制产物并上传至 GitHub Release
+  # upload-binaries:
+  #   name: Build & Upload Release Assets
+  #   needs: release-please
+  #   if: ${{ needs.release-please.outputs.release_created == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.release-please.outputs.tag_name }}
+  #     - name: Build release artifacts
+  #       run: |
+  #         mkdir -p dist-assets
+  #         # 替换为你的编译打包命令，例如 Go / Rust / pkg 等
+  #         # tar -czf dist-assets/app-${{ needs.release-please.outputs.tag_name }}-linux-amd64.tar.gz bin/app
+  #     - name: Upload assets to GitHub Release
+  #       env:
+  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         gh release upload "${{ needs.release-please.outputs.tag_name }}" dist-assets/* --clobber

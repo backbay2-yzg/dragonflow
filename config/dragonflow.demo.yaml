@@ -1,0 +1,290 @@
+# =============================================================================
+# DragonFlow 离线演示模式配置（零 API Key 开箱即用）
+# 运行方式：pnpm demo
+# 对应执行：pnpm --filter @dragonflow/server demo
+# =============================================================================
+
+project:
+  name: "DragonFlow Demo"
+  dataDir: "./data/demo"
+  mode: "demo"
+
+github:
+  tokenEnv: "GITHUB_TOKEN"
+  webhookSecretEnv: "GITHUB_WEBHOOK_SECRET"
+  pollIntervalSec: 15
+  repositories:
+    - owner: "dragonflow-org"
+      repo: "awesome-oss"
+      baseBranch: "main"
+      enabled: true
+      testCommand: "node --test"
+      buildCommand: "node --check src/index.js"
+      lintCommand: "node --check src/index.js"
+  triggerLabel: "auto-dev"
+  needsHumanLabel: "needs-human"
+  ownerFastTrack: true
+  maintainers:
+    - "dragon-maintainer"
+  autoMergeLowRisk:
+    enabled: true
+    allowedCategories:
+      - "docs"
+      - "chore"
+    maxComplexity: 2
+    maxFilesChanged: 5
+    mergeMethod: "squash"
+
+llm:
+  mode: "cli_fallback"
+  provider: "openai-compatible"
+  baseUrl: "https://api.openai.com/v1"
+  apiKeyEnv: "OPENAI_API_KEY"
+  model: "gpt-4o-mini"
+  cliFallbackAgentId: "claude"
+  temperature: 0.2
+  maxTokens: 4096
+
+agents:
+  - id: "claude"
+    displayName: "Claude Code"
+    type: "claude"
+    enabled: true
+    command: "claude"
+    args: []
+    strengths:
+      - "complex-architecture"
+      - "typescript"
+      - "multi-file-refactor"
+    costTier: "high"
+    maxBudgetUsd: 5.0
+    timeoutSec: 900
+    envAllowlist:
+      - "ANTHROPIC_API_KEY"
+    promptMode: "stdin"
+    outputMode: "stream-json"
+
+  - id: "codex"
+    displayName: "OpenAI Codex CLI"
+    type: "codex"
+    enabled: true
+    command: "codex"
+    args: []
+    strengths:
+      - "bugfix"
+      - "unit-tests"
+      - "cross-review"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist:
+      - "OPENAI_API_KEY"
+    promptMode: "stdin"
+    outputMode: "json"
+
+  - id: "gemini"
+    displayName: "Gemini CLI"
+    type: "gemini"
+    enabled: true
+    command: "gemini"
+    args: []
+    strengths:
+      - "docs"
+      - "quick-fix"
+      - "chore"
+    costTier: "low"
+    timeoutSec: 600
+    envAllowlist:
+      - "GEMINI_API_KEY"
+    promptMode: "stdin"
+    outputMode: "json"
+
+  - id: "qodercli"
+    displayName: "Qoder CLI"
+    type: "qodercli"
+    enabled: true
+    command: "qodercli"
+    args: []
+    strengths:
+      - "frontend"
+      - "full-stack"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+  - id: "opencode"
+    displayName: "OpenCode"
+    type: "opencode"
+    enabled: true
+    command: "opencode"
+    args: []
+    strengths:
+      - "refactoring"
+      - "open-models"
+    costTier: "low"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "json"
+
+  - id: "aider"
+    displayName: "Aider"
+    type: "aider"
+    enabled: true
+    command: "aider"
+    args: []
+    strengths:
+      - "surgical-edits"
+      - "python"
+    costTier: "low"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "file"
+    outputMode: "text"
+
+  - id: "workbuddy"
+    displayName: "WorkBuddy CLI"
+    type: "workbuddy"
+    enabled: true
+    command: "workbuddy"
+    args: []
+    strengths:
+      - "enterprise-workflow"
+      - "documentation"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+  - id: "codebuddy"
+    displayName: "CodeBuddy CLI"
+    type: "codebuddy"
+    enabled: true
+    command: "codebuddy"
+    args: []
+    strengths:
+      - "code-generation"
+      - "test-generation"
+    costTier: "medium"
+    timeoutSec: 900
+    envAllowlist: []
+    promptMode: "stdin"
+    outputMode: "text"
+
+routing:
+  defaultAgent: "claude"
+  defaultReviewerAgent: "codex"
+  crossReviewDifferentAgent: true
+  fallbackOrder:
+    - "claude"
+    - "qodercli"
+    - "codex"
+    - "gemini"
+    - "opencode"
+    - "aider"
+    - "workbuddy"
+    - "codebuddy"
+  rules:
+    - name: "demo-docs-chore-fast"
+      priority: 10
+      match:
+        categories:
+          - "docs"
+          - "chore"
+        complexityMax: 2
+      agentId: "gemini"
+      fallbackAgents:
+        - "opencode"
+        - "claude"
+      tierOverride: "quick_fix"
+
+    - name: "demo-bugfix-codex"
+      priority: 20
+      match:
+        categories:
+          - "bug"
+        complexityMax: 2
+      agentId: "codex"
+      fallbackAgents:
+        - "claude"
+        - "qodercli"
+      tierOverride: "quick_fix"
+
+    - name: "demo-feature-refactor-full-sdlc"
+      priority: 30
+      match:
+        categories:
+          - "feature"
+          - "refactor"
+        complexityMin: 3
+      agentId: "claude"
+      fallbackAgents:
+        - "qodercli"
+        - "codex"
+      tierOverride: "full_sdlc"
+
+    - name: "demo-frontend-qodercli"
+      priority: 40
+      match:
+        labels:
+          - "frontend"
+          - "ui"
+      agentId: "qodercli"
+      fallbackAgents:
+        - "claude"
+        - "gemini"
+
+workflow:
+  maxConcurrentTasks: 2
+  quickFixMaxComplexity: 2
+  requirePlanApprovalForFullSdlc: true
+  maxLocalFixRetries: 2
+  maxCrossReviewRetries: 1
+  maxCiFixRetries: 3
+  maxReviewFixRetries: 3
+  defaultTestCommand: "node --test"
+  defaultBuildCommand: "node --check src/index.js"
+  defaultLintCommand: "node --check src/index.js"
+
+release:
+  mode: "release_pr"
+  releasePrTitlePrefix: "chore(main): release"
+  releaseBranchPrefix: "release-please--"
+  conventionalCommits: true
+
+workspace:
+  runner: "worktree"
+  worktreeRoot: "./data/demo/worktrees"
+  reposRoot: "./data/demo/repos"
+  cleanupOnFinish: false
+  dockerImage: "node:22-bookworm"
+  dockerNetwork: "bridge"
+
+notifications:
+  channels:
+    - id: "feishu-demo"
+      type: "feishu"
+      enabled: false
+      urlEnv: "FEISHU_WEBHOOK_URL"
+      secretEnv: "FEISHU_WEBHOOK_SECRET"
+      events:
+        - "plan_awaiting_approval"
+        - "ready_to_merge"
+        - "needs_human"
+        - "released"
+
+    - id: "slack-demo"
+      type: "slack"
+      enabled: false
+      urlEnv: "SLACK_WEBHOOK_URL"
+      events:
+        - "pr_opened"
+        - "ready_to_merge"
+        - "released"
+
+server:
+  host: "127.0.0.1"
+  port: 4390
+  corsOrigin: "*"

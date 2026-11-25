@@ -1,0 +1,174 @@
+name: Immediate Release (Per PR)
+
+# 对应 DragonFlow 配置：release.mode: immediate_per_pr
+# 每当 PR 合并到 main 分支时，依据 Conventional Commits 自动计算 SemVer 版本号，
+# 立即创建 Git Tag 并生成 GitHub Release（无需维护额外的 Release PR）。
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: immediate-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  immediate-release:
+    name: Compute SemVer, Tag & Create Release
+    runs-on: ubuntu-latest
+    # 避免对自动发版提交或带 [skip ci] 的提交重复触发发版
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') && !contains(github.event.head_commit.message, '[skip ci]') }}
+    outputs:
+      released: ${{ steps.semver.outputs.released }}
+      tag_name: ${{ steps.semver.outputs.tag_name }}
+      version: ${{ steps.semver.outputs.version }}
+
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Calculate next SemVer from Conventional Commits
+        id: semver
+        run: |
+          node - <<'EOF'
+          const { execSync } = require('node:child_process');
+          const { appendFileSync } = require('node:fs');
+
+          function run(cmd) {
+            return execSync(cmd, { encoding: 'utf8' }).trim();
+          }
+
+          function writeOutput(key, value) {
+            appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+          }
+
+          let latestTag = '';
+          try {
+            const tags = run('git tag --merged HEAD --sort=-v:refname')
+              .split(/\r?\n/)
+              .map((t) => t.trim())
+              .filter((t) => /^v\d+\.\d+\.\d+$/.test(t));
+            latestTag = tags[0] ?? '';
+          } catch {
+            latestTag = '';
+          }
+
+          const range = latestTag ? `${latestTag}..HEAD` : 'HEAD';
+          const rawLog = run(`git log ${range} --format=%H%x1f%s%x1f%b%x1e`);
+          const commits = rawLog
+            .split('\x1e')
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+            .map((entry) => {
+              const [hash, subject = '', body = ''] = entry.split('\x1f');
+              return { hash, subject: subject.trim(), body: body.trim() };
+            });
+
+          if (commits.length === 0) {
+            console.log('No new commits since last tag; skipping release.');
+            writeOutput('released', 'false');
+            process.exit(0);
+          }
+
+          let bump = 'none';
+          const breakingRe = /^[a-zA-Z]+(?:\([^)]+\))?!:/;
+          const featRe = /^feat(?:\([^)]+\))?:/;
+          const patchRe = /^(fix|perf|refactor|revert)(?:\([^)]+\))?:/;
+
+          for (const commit of commits) {
+            if (
+              breakingRe.test(commit.subject) ||
+              /BREAKING[ -]CHANGE:/i.test(commit.body)
+            ) {
+              bump = 'major';
+              break;
+            }
+            if (featRe.test(commit.subject)) {
+              bump = 'minor';
+            } else if (bump === 'none' && patchRe.test(commit.subject)) {
+              bump = 'patch';
+            }
+          }
+
+          // 若本次仅包含 docs/chore/ci/test 等提交，可选择跳过或按 patch 递增；
+          // 默认回退为 patch，确保每次 PR 合并到 main 均能闭环发版（符合 immediate_per_pr 语义）。
+          if (bump === 'none') {
+            bump = 'patch';
+          }
+
+          const baseVersion = latestTag ? latestTag.replace(/^v/, '') : '0.0.0';
+          const [majorStr, minorStr, patchStr] = baseVersion.split('.');
+          let major = Number(majorStr);
+          let minor = Number(minorStr);
+          let patch = Number(patchStr);
+
+          if (bump === 'major') {
+            major += 1;
+            minor = 0;
+            patch = 0;
+          } else if (bump === 'minor') {
+            minor += 1;
+            patch = 0;
+          } else {
+            patch += 1;
+          }
+
+          const nextVersion = `${major}.${minor}.${patch}`;
+          const nextTag = `v${nextVersion}`;
+          console.log(`Previous tag: ${latestTag || '(none)'} -> Next release: ${nextTag} (${bump})`);
+
+          writeOutput('released', 'true');
+          writeOutput('prev_tag', latestTag);
+          writeOutput('version', nextVersion);
+          writeOutput('tag_name', nextTag);
+          EOF
+
+      - name: Create Git Tag and GitHub Release
+        if: ${{ steps.semver.outputs.released == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.semver.outputs.tag_name }}
+          PREV_TAG: ${{ steps.semver.outputs.prev_tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$TAG_NAME" -m "chore(release): $TAG_NAME"
+          git push origin "$TAG_NAME"
+
+          if [ -n "$PREV_TAG" ]; then
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-start-tag "$PREV_TAG" \
+              --generate-notes
+          else
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --generate-notes
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 可选扩展 Hook：若需要在即时发版后自动发布包或上传产物，可取消下方注释
+  # ---------------------------------------------------------------------------
+  # publish-packages:
+  #   name: Publish Artifacts
+  #   needs: immediate-release
+  #   if: ${{ needs.immediate-release.outputs.released == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.immediate-release.outputs.tag_name }}
+  #     # 在此处添加 npm publish / PyPI publish / Docker push / gh release upload 等步骤

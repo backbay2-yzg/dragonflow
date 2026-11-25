@@ -1,0 +1,29 @@
+{
+  "name": "dragonflow-monorepo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "dev:server": "pnpm --filter @dragonflow/server dev",
+    "dev:web": "pnpm --filter @dragonflow/web dev",
+    "start": "pnpm --filter @dragonflow/server start",
+    "demo": "pnpm --filter @dragonflow/server demo"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

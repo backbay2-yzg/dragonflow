@@ -1,0 +1,514 @@
+@import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces (Light Counterpart — Crisp Neutral) */
+  --df-canvas: #f6f7f9;
+  --df-surface-1: #ffffff;
+  --df-surface-2: #f0f1f4;
+  --df-surface-3: #e7e9ee;
+  --df-terminal-bg: #0d0f13;
+
+  /* Desktop TrayFlyout Native Acrylic Surfaces */
+  --df-flyout-bg: rgba(246, 247, 249, 0.92);
+  --df-flyout-card: rgba(255, 255, 255, 0.92);
+
+  /* Hairlines */
+  --df-hairline: #e2e4e9;
+  --df-hairline-strong: #cdd1da;
+  --df-hairline-subtle: #eceef2;
+
+  /* Ink Hierarchy (WCAG AA >= 4.5:1) */
+  --df-ink: #111318;
+  --df-ink-muted: #4a4f5c;
+  --df-ink-subtle: #616775;
+  --df-ink-disabled: #9aa0ae;
+
+  /* Brand Accent (Linear Indigo) */
+  --df-primary: #4f46e5;
+  --df-primary-hover: #4338ca;
+  --df-primary-text: #4338ca;
+  --df-primary-soft: #eef0ff;
+  --df-primary-border: #c7cdfb;
+  --df-on-primary: #ffffff;
+
+  /* 4+1 Semantic Action Palette */
+  --df-running: #4338ca;
+  --df-running-soft: #eef0ff;
+  --df-running-border: #d1d5fc;
+  --df-waiting: #9a5200;
+  --df-waiting-soft: #fef4e2;
+  --df-waiting-border: #f3d39c;
+  --df-success: #117a48;
+  --df-success-soft: #e6f7ee;
+  --df-success-border: #b4e3ca;
+  --df-danger: #c42838;
+  --df-danger-soft: #fdecef;
+  --df-danger-border: #f5c0c8;
+  --df-neutral: #525866;
+  --df-neutral-soft: #f0f1f4;
+  --df-neutral-border: #dcdfe6;
+
+  /* Elevation & Scrims */
+  --df-scrim: rgba(17, 19, 24, 0.34);
+  --df-shadow-float: 0 0 0 1px #e2e4e9, 0 12px 32px rgba(17, 19, 24, 0.12), 0 2px 6px rgba(17, 19, 24, 0.05);
+  --df-scroll-thumb: rgba(17, 19, 24, 0.18);
+  --df-scroll-thumb-hover: rgba(17, 19, 24, 0.34);
+
+  /* Typography (Windows CJK Guard included in monospace) */
+  --df-font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", system-ui, -apple-system, sans-serif;
+  --df-font-mono: "JetBrains Mono", "Cascadia Mono", "Cascadia Code", Consolas, "Microsoft YaHei UI", "PingFang SC", ui-monospace, monospace;
+
+  /* Motion */
+  --df-ease-interactive: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --df-ease-enter: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --df-canvas: #0b0c0e;
+    --df-surface-1: #111215;
+    --df-surface-2: #17181c;
+    --df-surface-3: #1f2127;
+    --df-terminal-bg: #07080a;
+
+    --df-flyout-bg: rgba(17, 18, 21, 0.90);
+    --df-flyout-card: rgba(23, 24, 28, 0.88);
+
+    --df-hairline: #23252b;
+    --df-hairline-strong: #32353e;
+    --df-hairline-subtle: #1b1d22;
+
+    --df-ink: #f3f4f6;
+    --df-ink-muted: #b8bcc6;
+    --df-ink-subtle: #8e94a0;
+    --df-ink-disabled: #5c616e;
+
+    --df-primary: #5e6ad2;
+    --df-primary-hover: #525dc4;
+    --df-primary-text: #9aa5ff;
+    --df-primary-soft: #1e2240;
+    --df-primary-border: #353c72;
+    --df-on-primary: #ffffff;
+
+    --df-running: #9aa5ff;
+    --df-running-soft: #1e2240;
+    --df-running-border: #353c72;
+    --df-waiting: #f2b84b;
+    --df-waiting-soft: #2f2616;
+    --df-waiting-border: #5c461f;
+    --df-success: #4ad38f;
+    --df-success-soft: #132b20;
+    --df-success-border: #1f4f38;
+    --df-danger: #f27c85;
+    --df-danger-soft: #34191d;
+    --df-danger-border: #632931;
+    --df-neutral: #8e94a0;
+    --df-neutral-soft: #1f2127;
+    --df-neutral-border: #2e313a;
+
+    --df-scrim: rgba(0, 0, 0, 0.56);
+    --df-shadow-float: 0 0 0 1px #32353e, 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.32);
+    --df-scroll-thumb: rgba(255, 255, 255, 0.16);
+    --df-scroll-thumb-hover: rgba(255, 255, 255, 0.30);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --df-canvas: #0b0c0e;
+  --df-surface-1: #111215;
+  --df-surface-2: #17181c;
+  --df-surface-3: #1f2127;
+  --df-terminal-bg: #07080a;
+
+  --df-flyout-bg: rgba(17, 18, 21, 0.90);
+  --df-flyout-card: rgba(23, 24, 28, 0.88);
+
+  --df-hairline: #23252b;
+  --df-hairline-strong: #32353e;
+  --df-hairline-subtle: #1b1d22;
+
+  --df-ink: #f3f4f6;
+  --df-ink-muted: #b8bcc6;
+  --df-ink-subtle: #8e94a0;
+  --df-ink-disabled: #5c616e;
+
+  --df-primary: #5e6ad2;
+  --df-primary-hover: #525dc4;
+  --df-primary-text: #9aa5ff;
+  --df-primary-soft: #1e2240;
+  --df-primary-border: #353c72;
+  --df-on-primary: #ffffff;
+
+  --df-running: #9aa5ff;
+  --df-running-soft: #1e2240;
+  --df-running-border: #353c72;
+  --df-waiting: #f2b84b;
+  --df-waiting-soft: #2f2616;
+  --df-waiting-border: #5c461f;
+  --df-success: #4ad38f;
+  --df-success-soft: #132b20;
+  --df-success-border: #1f4f38;
+  --df-danger: #f27c85;
+  --df-danger-soft: #34191d;
+  --df-danger-border: #632931;
+  --df-neutral: #8e94a0;
+  --df-neutral-soft: #1f2127;
+  --df-neutral-border: #2e313a;
+
+  --df-scrim: rgba(0, 0, 0, 0.56);
+  --df-shadow-float: 0 0 0 1px #32353e, 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.32);
+  --df-scroll-thumb: rgba(255, 255, 255, 0.16);
+  --df-scroll-thumb-hover: rgba(255, 255, 255, 0.30);
+}
+
+@theme inline {
+  --color-canvas: var(--df-canvas);
+  --color-surface-1: var(--df-surface-1);
+  --color-surface-2: var(--df-surface-2);
+  --color-surface-3: var(--df-surface-3);
+  --color-terminal: var(--df-terminal-bg);
+  --color-hairline: var(--df-hairline);
+  --color-hairline-strong: var(--df-hairline-strong);
+  --color-hairline-subtle: var(--df-hairline-subtle);
+  --color-ink: var(--df-ink);
+  --color-ink-muted: var(--df-ink-muted);
+  --color-ink-subtle: var(--df-ink-subtle);
+  --color-ink-disabled: var(--df-ink-disabled);
+  --color-primary: var(--df-primary);
+  --color-primary-hover: var(--df-primary-hover);
+  --color-primary-text: var(--df-primary-text);
+  --color-primary-soft: var(--df-primary-soft);
+  --color-primary-border: var(--df-primary-border);
+  --color-on-primary: var(--df-on-primary);
+  --font-sans: var(--df-font-sans);
+  --font-mono: var(--df-font-mono);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent !important;
+    color: var(--df-ink);
+    font-family: var(--df-font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  button,
+  nav,
+  [role="tab"],
+  [role="button"] {
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  code,
+  pre,
+  .selectable {
+    user-select: text;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--df-font-mono);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--df-primary);
+    outline-offset: 1px;
+  }
+
+  ::selection {
+    background-color: var(--df-primary-soft);
+    color: var(--df-ink);
+  }
+}
+
+@layer components {
+  .df-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background-color: var(--df-primary);
+    color: var(--df-on-primary);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 150ms var(--df-ease-interactive), opacity 150ms var(--df-ease-interactive);
+  }
+
+  .df-btn-primary:hover:not(:disabled) {
+    background-color: var(--df-primary-hover);
+  }
+
+  .df-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .df-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1px solid var(--df-hairline);
+    background-color: var(--df-surface-2);
+    color: var(--df-ink);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 150ms var(--df-ease-interactive), border-color 150ms var(--df-ease-interactive), opacity 150ms var(--df-ease-interactive);
+  }
+
+  .df-btn-secondary:hover:not(:disabled) {
+    background-color: var(--df-surface-3);
+    border-color: var(--df-hairline-strong);
+  }
+
+  .df-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .df-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--df-ink-muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 150ms var(--df-ease-interactive), color 150ms var(--df-ease-interactive);
+  }
+
+  .df-btn-ghost:hover:not(:disabled) {
+    background-color: var(--df-surface-3);
+    color: var(--df-ink);
+  }
+
+  .df-btn-ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .df-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--df-danger-border);
+    background-color: transparent;
+    color: var(--df-danger);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 150ms var(--df-ease-interactive), border-color 150ms var(--df-ease-interactive);
+  }
+
+  .df-btn-danger:hover:not(:disabled) {
+    background-color: var(--df-danger-soft);
+  }
+
+  .df-btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .df-input {
+    background-color: var(--df-surface-2);
+    color: var(--df-ink);
+    border: 1px solid var(--df-hairline-strong);
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.45;
+    transition: border-color 150ms var(--df-ease-interactive), box-shadow 150ms var(--df-ease-interactive);
+  }
+
+  .df-input::placeholder {
+    color: var(--df-ink-subtle);
+  }
+
+  .df-input:focus-visible {
+    outline: none;
+    border-color: var(--df-primary);
+    box-shadow: 0 0 0 2px var(--df-primary-soft), 0 0 0 1px var(--df-primary);
+  }
+
+  .df-input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .df-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    font-family: var(--df-font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--df-ink-muted);
+    background-color: var(--df-surface-3);
+    border: 1px solid var(--df-hairline-strong);
+    border-radius: 4px;
+    box-shadow: inset 0 -1px 0 var(--df-hairline-strong);
+    user-select: none;
+  }
+
+  .df-float {
+    box-shadow: var(--df-shadow-float);
+  }
+
+  .df-flyout-shell {
+    background-color: var(--df-flyout-bg);
+    border: 1px solid var(--df-hairline-strong);
+  }
+
+  .df-flyout-card {
+    background-color: var(--df-flyout-card);
+    border: 1px solid var(--df-hairline);
+  }
+
+  .df-flyout-card:hover {
+    background-color: var(--df-surface-3);
+    border-color: var(--df-hairline-strong);
+  }
+
+  .df-badge-running {
+    background-color: var(--df-running-soft);
+    color: var(--df-running);
+    border-color: var(--df-running-border);
+  }
+
+  .df-badge-waiting {
+    background-color: var(--df-waiting-soft);
+    color: var(--df-waiting);
+    border-color: var(--df-waiting-border);
+  }
+
+  .df-badge-success {
+    background-color: var(--df-success-soft);
+    color: var(--df-success);
+    border-color: var(--df-success-border);
+  }
+
+  .df-badge-danger {
+    background-color: var(--df-danger-soft);
+    color: var(--df-danger);
+    border-color: var(--df-danger-border);
+  }
+
+  .df-badge-neutral {
+    background-color: var(--df-neutral-soft);
+    color: var(--df-neutral);
+    border-color: var(--df-neutral-border);
+  }
+}
+
+@keyframes df-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.df-pulse-dot {
+  animation: df-pulse 2s ease-in-out infinite;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Wails v3 Non-Client Region Drag Support */
+.wails-drag {
+  --wails-draggable: drag;
+  app-region: drag;
+}
+
+.wails-no-drag {
+  --wails-draggable: no-drag;
+  app-region: no-drag;
+}
+
+/* Reduced Motion Guard */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Thin 6px scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--df-scroll-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--df-scroll-thumb);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--df-scroll-thumb-hover);
+}
