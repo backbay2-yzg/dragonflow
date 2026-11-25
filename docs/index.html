@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="DragonFlow（龙流）— 面向 GitHub 开源仓库的 AI 全自动研发流水线与多 Agent 编排控制台。零密钥 3 分钟体验，支持 Web 控制台与 Windows 原生桌面端。"
+    />
+    <title>DragonFlow（龙流）— AI 全自动研发流水线与多 Agent 编排控制台</title>
+    <link rel="icon" type="image/png" href="./dragonflow.png" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('dragonflow:docs-theme');
+          document.documentElement.setAttribute(
+            'data-theme',
+            saved === 'light' ? 'light' : 'dark'
+          );
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#top" class="brand">
+          <img src="./dragonflow.png" alt="DragonFlow Logo" />
+          <span>DragonFlow</span>
+          <span class="brand-pill mono">Docs</span>
+        </a>
+
+        <nav class="nav-links" aria-label="页面导航">
+          <a href="#pipeline">核心流程</a>
+          <a href="#gallery">功能截图</a>
+          <a href="#quickstart">3 分钟体验</a>
+          <a href="#live-guide">接入 GitHub</a>
+          <a href="#desktop">Windows 桌面端</a>
+          <a href="#faq">常见问题</a>
+        </nav>
+
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="btn btn-secondary btn-sm">
+            🌙 深色模式
+          </button>
+          <a
+            href="https://github.com/backbay2-yzg/dragonflow"
+            target="_blank"
+            rel="noreferrer"
+            class="btn btn-primary btn-sm"
+          >
+            GitHub 源码
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="hero-eyebrow">
+              <span class="badge badge-primary">Node.js 22+ &amp; Go Wails v3</span>
+              <span class="badge badge-success">零密钥 3 分钟离线演练</span>
+              <span class="badge badge-waiting">8+1 CLI 混编 &amp; 自动降级</span>
+            </div>
+            <h1>
+              把 GitHub Issue 到发版，<br />
+              变成一条<span class="accent">“管得住”</span>的 AI 流水线
+            </h1>
+            <p class="hero-lead">
+              <strong>DragonFlow（龙流）</strong> 打通 Issue 自动分诊、三层智能路由、Spec/Plan
+              审批门禁、Git Worktree 隔离编码测试、异构交叉审查、PR 与 CI 自动修复到 Release
+              发布的端到端闭环。提供 <strong>Web 控制台</strong> 与
+              <strong>Windows 原生桌面端</strong>，小白也能 3 分钟上手跑通全流程。
+            </p>
+            <div class="hero-cta">
+              <a href="#quickstart" class="btn btn-primary">🚀 3 分钟零密钥体验</a>
+              <a href="#gallery" class="btn btn-secondary">🖼️ 查看 8 张实机截图</a>
+              <a
+                href="https://github.com/backbay2-yzg/dragonflow"
+                target="_blank"
+                rel="noreferrer"
+                class="btn btn-secondary"
+              >
+                ⭐ 前往 GitHub 仓库
+              </a>
+            </div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="mono">bash · 零 GitHub Token / 零 API Key 一键启动演练</span>
+                <button type="button" class="copy-btn">复制</button>
+              </div>
+              <pre><code>git clone https://github.com/backbay2-yzg/dragonflow.git
+cd dragonflow &amp;&amp; pnpm install &amp;&amp; pnpm build &amp;&amp; pnpm demo</code></pre>
+            </div>
+          </div>
+
+          <div class="hero-frame">
+            <div class="hero-frame-bar">
+              <span class="window-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span class="mono">http://127.0.0.1:4390 · Mission Control</span>
+              <span id="hero-theme-label" class="mono">Dark Theme Preview</span>
+            </div>
+            <img
+              id="hero-preview-img"
+              src="./screenshots/01-kanban-overview-dark.png"
+              alt="DragonFlow 控制台深色模式任务看板截图"
+              title="点击放大查看高清截图"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Value Props + Interactive 6-Stage Pipeline -->
+      <section id="pipeline" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">Core Architecture</span>
+            <h2>为什么选 DragonFlow？不盲目全自动，关键节点你说了算</h2>
+            <p>
+              不同于“一把梭哈改代码”的脚本，DragonFlow 通过 20 个严谨的状态机与分级审批卡点，让低风险修得快、高风险改得稳。
+            </p>
+          </div>
+
+          <div class="grid-4" style="margin-bottom: 28px">
+            <div class="card">
+              <h3>🛡️ 陌生人门禁防滥用</h3>
+              <p>
+                非维护者提交的 Issue 默认停在待触发状态，只有你回复 <code class="inline-code">/auto</code> 或贴上
+                <code class="inline-code">auto-dev</code> 标签才启动。
+              </p>
+            </div>
+            <div class="card">
+              <h3>⚖️ 轻重任务自动分流</h3>
+              <p>
+                小 Bug / 文档走 <code class="inline-code">Quick Fix</code> 直接提 PR；复杂功能走
+                <code class="inline-code">Full SDLC</code> 先出 Spec/Plan 等你批准再动手。
+              </p>
+            </div>
+            <div class="card">
+              <h3>🔄 配额耗尽自动切 CLI</h3>
+              <p>
+                内置 8 种 CLI + YAML 模板扩展。主 Agent 遇限流或欠费自动按降级链切备用 CLI，并记录完整切换审计。
+              </p>
+            </div>
+            <div class="card">
+              <h3>🩺 CI &amp; Review 自动自愈</h3>
+              <p>
+                PR 提交后自动盯梢 GitHub Actions 检查和 Review 评论，变红或被打回时拉取日志自动修复并重新推送。
+              </p>
+            </div>
+          </div>
+
+          <h3 style="margin: 0 0 12px; font-size: 16px">点击下方 6 个阶段，交互式查看每个环节的状态与卡点：</h3>
+          <div class="pipeline-steps" role="tablist" aria-label="6 阶段研发流">
+            <button type="button" class="stage-btn active" role="tab" aria-selected="true">
+              <span class="stage-num mono">Stage 1</span>
+              <span class="stage-name">分诊与门禁</span>
+            </button>
+            <button type="button" class="stage-btn" role="tab" aria-selected="false">
+              <span class="stage-num mono">Stage 2</span>
+              <span class="stage-name">路由与规划</span>
+            </button>
+            <button type="button" class="stage-btn" role="tab" aria-selected="false">
+              <span class="stage-num mono">Stage 3</span>
+              <span class="stage-name">隔离实现自测</span>
+            </button>
+            <button type="button" class="stage-btn" role="tab" aria-selected="false">
+              <span class="stage-num mono">Stage 4</span>
+              <span class="stage-name">审查与 PR 自愈</span>
+            </button>
+            <button type="button" class="stage-btn" role="tab" aria-selected="false">
+              <span class="stage-num mono">Stage 5</span>
+              <span class="stage-name">合并门禁</span>
+            </button>
+            <button type="button" class="stage-btn" role="tab" aria-selected="false">
+              <span class="stage-num mono">Stage 6</span>
+              <span class="stage-name">自动发版归档</span>
+            </button>
+          </div>
+
+          <div class="stage-detail" aria-live="polite">
+            <div>
+              <h3 id="stage-detail-title" style="margin: 0 0 4px; font-size: 17px">Stage 1 · Issue 分诊与门禁</h3>
+              <div id="stage-detail-statuses" class="status-chips"></div>
+              <p id="stage-detail-summary" style="margin: 0; color: var(--df-ink-muted)"></p>
+            </div>
+            <div class="card card-subtle">
+              <div class="badge badge-waiting" style="margin-bottom: 10px" id="stage-detail-tier"></div>
+              <p id="stage-detail-gate" style="margin: 0; color: var(--df-ink); font-size: 13.5px"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive 8-Screenshot Gallery -->
+      <section id="gallery" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">Visual Tour</span>
+            <h2>控制台全界面实景导览（8 张实机运行截图）</h2>
+            <p>点击标签切换页面视图，点击图片可全屏放大并支持键盘左右翻页。</p>
+          </div>
+
+          <div id="gallery-tabs" class="gallery-tabs"></div>
+
+          <div class="gallery-stage">
+            <div class="gallery-img-wrap">
+              <img
+                id="gallery-img"
+                src="./screenshots/01-kanban-overview-dark.png"
+                alt="DragonFlow 功能截图"
+                title="点击放大查看"
+              />
+            </div>
+
+            <div class="gallery-meta">
+              <span id="gallery-badge" class="badge badge-primary"></span>
+              <h3 id="gallery-title"></h3>
+              <p id="gallery-desc" style="color: var(--df-ink-muted); font-size: 13.5px"></p>
+              <ul id="gallery-bullets"></ul>
+              <button type="button" id="gallery-zoom-btn" class="btn btn-secondary btn-sm">
+                🔍 放大查看高清原图
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3-Minute Zero-Key Beginner Quickstart -->
+      <section id="quickstart" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">Beginner Quick Start</span>
+            <h2>小白 3 分钟快速体验（无需 GitHub Token，无需任何 API Key）</h2>
+            <p>Demo 模式会在本地自动生成沙箱 Git 仓库并使用内置 Mock 推理，不触碰任何真实仓库，零费用开箱即用。</p>
+          </div>
+
+          <div class="step-list">
+            <div class="step-card">
+              <div class="step-badge mono">1</div>
+              <div>
+                <h3>检查本机基础环境（Node.js &gt;= 22、pnpm &gt;= 9、Git）</h3>
+                <p>打开命令行（Windows 用 PowerShell，Mac/Linux 用终端），运行下面 3 条命令确认版本号满足要求；如缺少 pnpm 可执行 <code class="inline-code">npm install -g pnpm</code>。</p>
+                <div class="code-block">
+                  <div class="code-head">
+                    <span class="mono">环境检查命令</span>
+                    <button type="button" class="copy-btn">复制</button>
+                  </div>
+                  <pre><code>node -v   # 需 v22.0.0 或更高版本
+pnpm -v   # 需 9.0.0 或更高版本
+git -v    # 需已安装 Git</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge mono">2</div>
+              <div>
+                <h3>克隆仓库、安装依赖并构建</h3>
+                <p>从 GitHub 拉取源码后，依次安装 Monorepo 依赖并构建前后端产物：</p>
+                <div class="code-block">
+                  <div class="code-head">
+                    <span class="mono">拉取与构建</span>
+                    <button type="button" class="copy-btn">复制</button>
+                  </div>
+                  <pre><code>git clone https://github.com/backbay2-yzg/dragonflow.git
+cd dragonflow
+pnpm install
+pnpm build</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge mono">3</div>
+              <div>
+                <h3>启动零密钥 Demo 演练模式并打开浏览器</h3>
+                <p>执行启动命令后，浏览器访问 <a href="http://127.0.0.1:4390" style="color: var(--df-primary-text); text-decoration: underline">http://127.0.0.1:4390</a> 即可进入 Mission Control 控制台。</p>
+                <div class="code-block">
+                  <div class="code-head">
+                    <span class="mono">启动命令</span>
+                    <button type="button" class="copy-btn">复制</button>
+                  </div>
+                  <pre><code>pnpm demo</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge mono">4</div>
+              <div>
+                <h3>在网页端跟着体验 4 个典型场景</h3>
+                <p style="margin-bottom: 0">
+                  点击右上角蓝色按钮 <strong>模拟 Issue</strong>：先尝试 <strong>Quick Fix</strong> 看它一气呵成自动提 PR；再试 <strong>Full SDLC</strong> 看它如何在“待审批计划”暂停，点开抽屉看 Spec/Plan 并点 <strong>批准计划</strong>；接着体验 <strong>Quota Fallback</strong>（保留标题 <code class="inline-code">[QuotaFallback]</code>）观察主 Agent 配额耗尽自动切换，以及 <strong>CI + Review Self-Heal</strong>（保留 <code class="inline-code">[CIFailHeal]</code>）并点 <strong>Sync Now</strong> 看它自动修绿 CI！
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live GitHub Repository Setup -->
+      <section id="live-guide" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">Live Production Guide</span>
+            <h2>进阶实战：接入你自己的真实 GitHub 仓库（Live 模式）</h2>
+            <p>跑通 Demo 后，只需复制配置并填入 GitHub Token 即可让 DragonFlow 接管你自己的开源仓库。</p>
+          </div>
+
+          <div class="grid-2" style="margin-bottom: 18px">
+            <div class="card">
+              <h3>第 1 步：创建 GitHub Token 所需权限</h3>
+              <p style="margin-bottom: 10px">在 GitHub <strong>Settings -> Developer settings -> Personal access tokens</strong> 生成 Token，勾选以下仓库权限：</p>
+              <ul style="margin: 0; padding-left: 18px; color: var(--df-ink-muted); font-size: 13.5px">
+                <li><code class="inline-code">Issues</code>：Read and write（读写标签与评论）</li>
+                <li><code class="inline-code">Pull requests</code>：Read and write（创建、回复与合并 PR）</li>
+                <li><code class="inline-code">Contents</code>：Read and write（拉取代码并推送分支）</li>
+                <li><code class="inline-code">Checks</code> &amp; <code class="inline-code">Actions</code>：Read-only（读取 CI 状态与失败日志）</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>第 2 步：配置 .env（支持无 API Key 纯 CLI 运行）</h3>
+              <p style="margin-bottom: 10px">复制 <code class="inline-code">.env.example</code> 为 <code class="inline-code">.env</code>。若你没有单独购买 LLM API Key，Key 字段可以全部留空，只要把 YAML 的 <code class="inline-code">llm.mode</code> 设为 <code class="inline-code">cli_only</code> 即可直接用本机已登录的编码 CLI 完成推理。</p>
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="mono">.env 核心配置</span>
+                  <button type="button" class="copy-btn">复制</button>
+                </div>
+                <pre><code>GITHUB_TOKEN=ghp_你的GitHubToken
+DRAGONFLOW_CONFIG=config/dragonflow.yaml
+# 以下 LLM Key 可按需填写，或留空使用 cli_only 模式
+OPENAI_API_KEY=</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom: 24px">
+            <div class="card">
+              <h3>第 3 步：修改 config/dragonflow.yaml 核心 4 项</h3>
+              <p style="margin-bottom: 10px">复制 <code class="inline-code">config/dragonflow.example.yaml</code> 为 <code class="inline-code">config/dragonflow.yaml</code>，重点修改仓库名、验证命令、维护者账号与 LLM 模式后运行 <code class="inline-code">pnpm start</code>：</p>
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="mono">config/dragonflow.yaml 关键片段</span>
+                  <button type="button" class="copy-btn">复制</button>
+                </div>
+                <pre><code>github:
+  pollIntervalSec: 30
+  repositories:
+    - owner: "你的GitHub用户名"
+      repo: "你的仓库名"
+      baseBranch: "main"
+      enabled: true
+      testCommand: "pnpm test"
+      buildCommand: "pnpm build"
+  maintainers:
+    - "你的GitHub用户名"
+llm:
+  mode: "cli_fallback" # 无 API Key 可改为 "cli_only"</code></pre>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>第 4 步：内网轮询 / 公网 Webhook 与 7 种群通知</h3>
+              <p style="margin-bottom: 10px">
+                没有公网 IP 也能直接运行（默认每 30 秒轮询 GitHub）；若有公网地址可配置 Webhook
+                <code class="inline-code">POST /webhooks/github</code> 实现秒级响应。
+              </p>
+              <p style="margin-bottom: 10px">
+                支持 <strong>飞书、钉钉、企业微信、Slack、Discord、Telegram、Generic Webhook</strong>：只需在
+                <code class="inline-code">.env</code> 填入对应 <code class="inline-code">*_WEBHOOK_URL</code> 并在 YAML 开启
+                <code class="inline-code">enabled: true</code>，在待审批、待合并、需人工介入和发版时即可收到实时提醒。
+              </p>
+              <div class="callout">
+                安全提示：所有敏感凭据只通过环境变量（或桌面端 DPAPI 保险箱）读取，绝不写入 YAML 明文。
+              </div>
+            </div>
+          </div>
+
+          <h3 style="margin: 0 0 12px; font-size: 16px">GitHub Issue / PR 评论区 7 个维护者斜杠指令速查表</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>评论指令</th>
+                  <th>适用状态</th>
+                  <th>触发效果</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code class="inline-code mono">/auto</code></td>
+                  <td><code class="inline-code mono">AWAITING_TRIGGER</code> / 新建 Issue</td>
+                  <td>手动批准非维护者提交的 Issue 启动自动化流水线</td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/approve</code></td>
+                  <td><code class="inline-code mono">AWAITING_PLAN_APPROVAL</code></td>
+                  <td>审批通过 Spec 与 Plan 方案，放行进入编码实现</td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/reject &lt;修改建议&gt;</code></td>
+                  <td><code class="inline-code mono">AWAITING_PLAN_APPROVAL</code></td>
+                  <td>打回当前方案并附带修改意见，触发 AI 重新规划</td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/fix &lt;修复指引&gt;</code></td>
+                  <td><code class="inline-code mono">PR_OPEN</code> / <code class="inline-code mono">CI_FIXING</code> / <code class="inline-code mono">NEEDS_HUMAN</code></td>
+                  <td>人工下达定向修复指引，驱动 Agent 在分支上继续修正</td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/retry</code></td>
+                  <td><code class="inline-code mono">NEEDS_HUMAN</code> / <code class="inline-code mono">FAILED</code></td>
+                  <td>人工排除外部障碍（如补齐 Secret、解冲突）后从断点恢复</td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/merge</code></td>
+                  <td><code class="inline-code mono">READY_TO_MERGE</code></td>
+                  <td>人工确认合并门禁，触发 PR 合并进入 <code class="inline-code mono">MERGED</code></td>
+                </tr>
+                <tr>
+                  <td><code class="inline-code mono">/cancel</code></td>
+                  <td>任意非终态任务</td>
+                  <td>立即中止当前自动化任务并标记为 <code class="inline-code mono">CANCELLED</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Desktop App + 8+1 CLI Adapters -->
+      <section id="desktop" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">Windows Desktop &amp; CLI Pool</span>
+            <h2>Windows 原生桌面端（Wails v3）与 8+1 种编码 CLI 适配</h2>
+            <p>不想每次都开黑框命令行？直接使用 Go + Wails v3 打造的原生桌面客户端，开箱即带托盘浮窗、图形配置编辑器与加密保险箱。</p>
+          </div>
+
+          <div class="grid-2" style="margin-bottom: 24px">
+            <div class="card">
+              <h3>🖥️ Windows 桌面端专属亮点（apps/desktop）</h3>
+              <ul style="margin: 8px 0 12px; padding-left: 18px; color: var(--df-ink-muted); font-size: 13.5px">
+                <li><strong>系统托盘常驻 &amp; Acrylic 快捷浮窗</strong>：关闭主窗口隐藏到托盘后台轮询；左键托盘弹出半透明浮窗，一键审批方案或合并 PR。</li>
+                <li><strong>6 标签可视化配置编辑器</strong>：图形化编辑常规与桌面、GitHub 仓库、LLM 与路由、Agent 池、IM 通知及 YAML 导入导出，保存即热重载。</li>
+                <li><strong>Windows DPAPI 凭据保险箱</strong>：使用 <code class="inline-code">CryptProtectData</code> 加密保存 Token/Key 到 <code class="inline-code">secrets.vault</code>。</li>
+                <li><strong>便携绿装模式</strong>：在 <code class="inline-code">DragonFlow.exe</code> 同级放一个 <code class="inline-code">portable.flag</code>（或加 <code class="inline-code">--portable</code>）即可将全部数据存到同级 <code class="inline-code">data\</code> 目录。</li>
+              </ul>
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="mono">从源码构建桌面端（需 Go 1.26+ &amp; Wails v3）</span>
+                  <button type="button" class="copy-btn">复制</button>
+                </div>
+                <pre><code>cd apps/desktop
+wails3 dev          # 开发热重载
+wails3 build        # 构建 bin/DragonFlow.exe
+wails3 task package # 打包 Windows NSIS 安装向导</code></pre>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>🔌 内置 8 种编程 CLI + 第 9 种 YAML 自定义模板</h3>
+              <p style="margin-bottom: 10px">支持 <code class="inline-code">claude</code>、<code class="inline-code">codex</code>、<code class="inline-code">gemini</code>、<code class="inline-code">qodercli</code>、<code class="inline-code">opencode</code>、<code class="inline-code">aider</code>、<code class="inline-code">workbuddy</code>、<code class="inline-code">codebuddy</code>，也可以用 <code class="inline-code">type: "template"</code> 零代码接入任意第三方或自研 CLI：</p>
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="mono">YAML 自定义 CLI 示例（type: template）</span>
+                  <button type="button" class="copy-btn">复制</button>
+                </div>
+                <pre><code>- id: "my-custom-cli"
+  displayName: "My Custom Coding CLI"
+  type: "template"
+  enabled: true
+  command: "my-agent-cli"
+  model: "deepseek-coder"
+  promptMode: "file"
+  template:
+    argsTemplate: ["exec", "--model", "{{model}}", "--cwd", "{{cwd}}", "--prompt-file", "{{promptFile}}"]
+    quotaErrorPatterns: ["quota exceeded", "rate limit"]</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-subtle">
+            <h3 style="margin-bottom: 6px">📦 开源仓库 GitHub Actions CI &amp; 自动发版模板（templates/github-workflows/）</h3>
+            <p>
+              项目已自带开箱即用的 <code class="inline-code">ci.yml</code>（含 Node.js / Python / Go / Rust 适配注释）、
+              <code class="inline-code">release-please.yml</code>（Release PR 自动发版模式）与
+              <code class="inline-code">immediate-release.yml</code>（PR 合并即打 Tag 发版模式），复制到你目标仓库的
+              <code class="inline-code">.github/workflows/</code> 即可无缝联动。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq" class="section" style="border-bottom: none">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-kicker">FAQ &amp; Troubleshooting</span>
+            <h2>小白常见问题排查</h2>
+            <p>遇到问题先点开下方常见情景对照排查。</p>
+          </div>
+
+          <div class="faq-list">
+            <div class="faq-item open">
+              <button type="button" class="faq-q" aria-expanded="true">
+                <span>Q1：Windows PowerShell 运行 pnpm 提示“在此系统上禁止运行脚本”怎么办？</span>
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-a">
+                在 PowerShell 中执行一次当前用户授权即可：<code class="inline-code mono">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</code>，之后重新打开终端运行 <code class="inline-code">pnpm -v</code>。
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-q" aria-expanded="false">
+                <span>Q2：没有 OpenAI / Anthropic / Gemini 的付费 API Key，也能在 Live 模式跑真实仓库吗？</span>
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-a">
+                可以。只要本机已安装并登录任意编码 CLI（如 Claude Code、Codex、Gemini CLI、QoderCLI 等），将配置文件中的
+                <code class="inline-code">llm.mode</code> 设为 <code class="inline-code">"cli_only"</code> 并指定
+                <code class="inline-code">llm.cliFallbackAgentId</code>，即可只凭 <code class="inline-code">GITHUB_TOKEN</code> 驱动完整分诊、路由、开发与审查流程。
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-q" aria-expanded="false">
+                <span>Q3：为什么我在 GitHub 新建的 Issue 停在“待触发（AWAITING_TRIGGER）”不动？</span>
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-a">
+                这是防滥用安全门禁：提交者如果不在仓库维护者或 <code class="inline-code">github.maintainers</code> 列表中，DragonFlow 只会做只读分诊而不会自动动代码。你只需在 GitHub 给该 Issue 打上
+                <code class="inline-code">auto-dev</code> 标签、回复 <code class="inline-code">/auto</code>，或在控制台抽屉点“触发执行”即可放行。
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-q" aria-expanded="false">
+                <span>Q4：Agent 池里显示某个 CLI “not found on PATH”，但我明明已经安装？</span>
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-a">
+                在终端运行 <code class="inline-code">where claude</code>（Windows）或 <code class="inline-code">which claude</code>（Mac/Linux）确认其所在目录在系统 PATH 中；修改环境变量后重启 DragonFlow，再在 <strong>Agent 池</strong> 页面点击 <strong>重新探测本机 CLI</strong>。
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-q" aria-expanded="false">
+                <span>Q5：Windows 下使用 Git Worktree 有哪些避坑建议？</span>
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-a">
+                建议开启 Git 长路径支持（<code class="inline-code">git config --global core.longpaths true</code>），并将
+                <code class="inline-code">workspace.reposRoot</code> / <code class="inline-code">worktreeRoot</code> 放到较浅的目录中；若目标项目强依赖 Linux 工具链，可配合 WSL2 + Docker Desktop 将
+                <code class="inline-code">workspace.runner</code> 切换为 <code class="inline-code">"docker"</code>。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <strong>DragonFlow（龙流）</strong> · 面向 GitHub 开源仓库的 AI 全自动研发流水线控制台
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/backbay2-yzg/dragonflow" target="_blank" rel="noreferrer">GitHub 仓库</a>
+          <a href="https://github.com/backbay2-yzg/dragonflow/blob/main/README.md" target="_blank" rel="noreferrer">完整 README 文档</a>
+          <a href="https://github.com/backbay2-yzg/dragonflow/blob/main/apps/desktop/README.md" target="_blank" rel="noreferrer">Windows 桌面端说明</a>
+          <a href="https://github.com/backbay2-yzg/dragonflow/tree/main/templates/github-workflows" target="_blank" rel="noreferrer">Actions 模板</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="截图预览">
+      <div class="lightbox-box">
+        <div class="lightbox-bar">
+          <strong id="lightbox-title" style="font-size: 14px"></strong>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button type="button" id="lightbox-prev" class="btn btn-secondary btn-sm">← 上一张</button>
+            <button type="button" id="lightbox-next" class="btn btn-secondary btn-sm">下一张 →</button>
+            <button type="button" id="lightbox-close" class="btn btn-secondary btn-sm">Esc 关闭</button>
+          </div>
+        </div>
+        <div class="lightbox-body">
+          <img id="lightbox-img" src="./screenshots/01-kanban-overview-dark.png" alt="DragonFlow 截图预览" />
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

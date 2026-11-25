@@ -2,10 +2,13 @@
 
 > **把 GitHub 仓库的日常 Issue 处理、方案设计、编码测试、交叉审查、PR 修复与自动发版，变成一条“看得见、管得住、可审计”的 AI 研发流水线。**
 
+[![在线文档](https://img.shields.io/badge/Docs-GitHub_Pages-5e6ad2?logo=githubpages&logoColor=white)](https://backbay2-yzg.github.io/dragonflow/)
 [![Node.js >= 22](https://img.shields.io/badge/Node.js-%3E%3D22.0.0-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9.0.0-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![Go >= 1.26 (Desktop)](https://img.shields.io/badge/Go_Wails_v3-Desktop-00ADD8?logo=go&logoColor=white)](./apps/desktop/README.md)
 [![SQLite WAL](https://img.shields.io/badge/Storage-SQLite_WAL-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+
+> 🌐 **在线图文文档站点（GitHub Pages）**：https://backbay2-yzg.github.io/dragonflow/ （交互式 6 阶段流程浏览 + 8 张实机高清截图导览 + 一键复制新手指南）
 
 DragonFlow 是一套面向 GitHub 开源项目与个人开发者的 **AI 全自动研发流水线与多 Agent 编排控制台**。你既可以通过 **Web 控制台** 跨平台运行，也可以直接使用 **Windows 原生桌面端**（系统托盘常驻 + Acrylic 快捷浮窗 + DPAPI 加密保险箱）。
 
